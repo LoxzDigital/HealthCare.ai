@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare AI: An Interactive Investment Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Neutrals -->
+    <!-- Application Structure Plan: The application is designed as a top-down narrative dashboard. It starts with a high-level summary (Hero), then presents the most impactful data first: explosive market growth projections. It then allows users to drill down into the "why" behind this growth: the funding landscape (VC trends, AI's dominance, mega deals). Next, it categorizes the opportunities into clear, interactive "Key Verticals" using a tabbed interface to prevent information overload. Finally, it synthesizes the data into an actionable "Investment Thesis" with clear correlations and recommendations. This structure guides the user from the general market opportunity to specific, actionable insights, making a complex report digestible and engaging. -->
+    <!-- Visualization & Content Choices: 
+        - Market Projections: Report Info -> Market value 2024-2034. Goal -> Show change/growth. Viz -> Line Chart. Interaction -> Hover tooltips for specific values. Justification -> Best for time-series data. Library -> Chart.js.
+        - Funding Share: Report Info -> AI vs. Non-AI funding (62% AI). Goal -> Compare proportions. Viz -> Donut Chart. Interaction -> Click segments to update a summary text block. Justification -> Immediately shows dominance. Library -> Chart.js.
+        - VC Funding Trend: Report Info -> Total funding H1 2023-2025. Goal -> Compare discrete values. Viz -> Bar Chart. Justification -> Clear comparison across periods. Library -> Chart.js.
+        - Key Verticals: Report Info -> Descriptions of Diagnostics, Drug Discovery, etc. Goal -> Organize/Inform. Method -> Tabbed content sections. Interaction -> Click tabs to switch content. Justification -> Segments dense info, user-controlled exploration. Method -> HTML/CSS/JS.
+        - Correlations: Report Info -> List of positive/negative correlations. Goal -> Inform/Highlight. Method -> Styled HTML lists. Interaction -> Subtle fade-in animation on scroll. Justification -> More engaging than static text. Method -> HTML/CSS/JS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F7F4;
+            color: #333333;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #4FD1C5;
+            border-bottom-color: #4FD1C5;
+        }
+        .tab-button.active {
+            background-color: #4FD1C5;
+            color: white;
+        }
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-gray-800">Healthcare AI Insights</h1>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#market" class="nav-link text-gray-600 border-b-2 border-transparent pb-1">Market Growth</a>
+                <a href="#funding" class="nav-link text-gray-600 border-b-2 border-transparent pb-1">Funding Deep Dive</a>
+                <a href="#verticals" class="nav-link text-gray-600 border-b-2 border-transparent pb-1">Key Verticals</a>
+                <a href="#thesis" class="nav-link text-gray-600 border-b-2 border-transparent pb-1">Investment Thesis</a>
+            </div>
+            <div class="md:hidden">
+                <select id="mobile-nav" class="bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-700">
+                    <option value="#market">Market Growth</option>
+                    <option value="#funding">Funding Deep Dive</option>
+                    <option value="#verticals">Key Verticals</option>
+                    <option value="#thesis">Investment Thesis</option>
+                </select>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+
+        <section id="hero" class="text-center mb-20 fade-in">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4">The New Frontier of Investment:</h2>
+            <p class="text-2xl md:text-3xl text-[#4FD1C5] font-semibold mb-6">Artificial Intelligence in Healthcare</p>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600">
+                This interactive report synthesizes the latest market data to provide a clear investment thesis for the rapidly expanding Healthcare AI sector. Explore the explosive growth projections, funding dynamics, and key opportunities shaping the future of medicine.
+            </p>
+        </section>
+
+        <section id="market" class="mb-20 pt-16">
+            <div class="text-center mb-12 fade-in">
+                <h3 class="text-3xl font-bold mb-3">An Unprecedented Growth Trajectory</h3>
+                <p class="max-w-3xl mx-auto text-gray-600">
+                    The global AI in healthcare market is forecast to experience exponential growth, driven by massive data availability, cost pressures, and rapid technology adoption. The numbers signal a market moving from nascent to mainstream at a remarkable pace.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-12 fade-in">
+                <h4 class="text-xl font-semibold text-center mb-4">Projected Market Value (USD Billions)</h4>
+                <div class="chart-container">
+                    <canvas id="marketGrowthChart"></canvas>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8 text-center fade-in">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <p class="text-5xl font-bold text-[#4FD1C5]">38.6%</p>
+                    <p class="text-gray-600 mt-2 font-medium">CAGR (2025-2030)</p>
+                    <p class="text-sm text-gray-500 mt-2">A nearly 5x increase in market value is projected in just five years, signaling explosive growth.</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <p class="text-5xl font-bold text-[#63B3ED]">$3.20</p>
+                    <p class="text-gray-600 mt-2 font-medium">Average ROI</p>
+                    <p class="text-sm text-gray-500 mt-2">For every $1 invested, with returns typically seen within just 14 months, providing a compelling economic incentive.</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <p class="text-5xl font-bold text-[#4FD1C5]">66%</p>
+                    <p class="text-gray-600 mt-2 font-medium">Physician Adoption</p>
+                    <p class="text-sm text-gray-500 mt-2">The rate of physicians using health AI in 2024, a significant jump from 38% in 2023, showing rapid acceptance.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="funding" class="mb-20 pt-16">
+            <div class="text-center mb-12 fade-in">
+                <h3 class="text-3xl font-bold mb-3">Funding Deep Dive: The Flight to Quality</h3>
+                <p class="max-w-3xl mx-auto text-gray-600">
+                    Venture capital is flowing steadily into digital health, but with a clear and decisive pivot. Investors are consolidating bets on mature, AI-enabled companies, leading to fewer but significantly larger funding rounds.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-5 gap-8 items-start">
+                <div class="lg:col-span-3 bg-white rounded-xl shadow-lg p-6 md:p-8 fade-in">
+                    <h4 class="text-xl font-semibold text-center mb-4">Digital Health VC Funding (H1 2023-2025)</h4>
+                     <div class="chart-container h-80 md:h-96">
+                        <canvas id="vcFundingChart"></canvas>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 bg-white rounded-xl shadow-lg p-6 md:p-8 fade-in">
+                    <h4 class="text-xl font-semibold text-center mb-4">AI's Dominance in H1 2025</h4>
+                     <div class="chart-container h-64 md:h-72">
+                        <canvas id="aiDominanceChart"></canvas>
+                    </div>
+                    <div id="aiDominanceText" class="mt-4 text-center text-gray-600">
+                        <p>Click a segment to see details. AI-enabled startups captured the majority of funding, demonstrating clear investor conviction.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 fade-in">
+                 <h4 class="text-2xl font-bold text-center mb-6">The Rise of the Mega Deal</h4>
+                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                     <div class="bg-white rounded-xl shadow-lg p-6 text-center border-t-4 border-[#4FD1C5]">
+                         <p class="text-sm text-gray-500">Abridge</p>
+                         <p class="text-3xl font-bold my-2">$550M</p>
+                         <p class="text-gray-600">AI Scribe & Documentation</p>
+                     </div>
+                      <div class="bg-white rounded-xl shadow-lg p-6 text-center border-t-4 border-[#63B3ED]">
+                         <p class="text-sm text-gray-500">Truveta</p>
+                         <p class="text-3xl font-bold my-2">$320M</p>
+                         <p class="text-gray-600">Data for Drug Discovery</p>
+                     </div>
+                      <div class="bg-white rounded-xl shadow-lg p-6 text-center border-t-4 border-[#4FD1C5]">
+                         <p class="text-sm text-gray-500">Innovaccer</p>
+                         <p class="text-3xl font-bold my-2">$275M</p>
+                         <p class="text-gray-600">AI Healthcare Cloud</p>
+                     </div>
+                      <div class="bg-white rounded-xl shadow-lg p-6 text-center border-t-4 border-[#63B3ED]">
+                         <p class="text-sm text-gray-500">Ambience</p>
+                         <p class="text-3xl font-bold my-2">$243M</p>
+                         <p class="text-gray-600">Clinical Workflow AI</p>
+                     </div>
+                 </div>
+                 <p class="text-center mt-4 text-gray-500">9 of the 11 mega deals in H1 2025 went to AI-enabled startups.</p>
+            </div>
+        </section>
+
+        <section id="verticals" class="mb-20 pt-16">
+            <div class="text-center mb-12 fade-in">
+                <h3 class="text-3xl font-bold mb-3">Key Investment Verticals</h3>
+                <p class="max-w-3xl mx-auto text-gray-600">
+                    Capital is being strategically deployed into specific verticals where AI demonstrates the highest potential for impact and return. Explore the most promising use cases driving the market forward.
+                </p>
+            </div>
+
+            <div class="w-full max-w-4xl mx-auto fade-in">
+                <div class="mb-6 flex flex-wrap justify-center gap-2 md:gap-4">
+                    <button data-tab="diagnostics" class="tab-button active px-4 py-2 text-sm md:text-base font-semibold rounded-full transition">Advanced Diagnostics</button>
+                    <button data-tab="discovery" class="tab-button px-4 py-2 text-sm md:text-base font-semibold rounded-full transition text-gray-600">Drug Discovery</button>
+                    <button data-tab="ops" class="tab-button px-4 py-2 text-sm md:text-base font-semibold rounded-full transition text-gray-600">Operational Efficiency</button>
+                    <button data-tab="rpm" class="tab-button px-4 py-2 text-sm md:text-base font-semibold rounded-full transition text-gray-600">Remote Monitoring</button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 min-h-[300px]">
+                    <div id="diagnostics" class="tab-content">
+                        <h4 class="text-2xl font-semibold mb-4 text-[#4FD1C5]">Advanced Diagnostics & Imaging</h4>
+                        <p class="text-gray-600 mb-4">This is the most direct application of AI in healthcare, where algorithms analyze medical images like MRIs and CT scans with superhuman speed and accuracy. With over 340 FDA-approved tools, AI is revolutionizing early disease detection for conditions like cancer and stroke. AI-generated operative reports have even shown an 87.3% accuracy rate, significantly outperforming human surgeons.</p>
+                        <div class="font-semibold">Key Players: Aidoc, Lunit</div>
+                    </div>
+                    <div id="discovery" class="tab-content hidden">
+                        <h4 class="text-2xl font-semibold mb-4 text-[#4FD1C5]">Precision Medicine & Drug Discovery</h4>
+                        <p class="text-gray-600 mb-4">AI is dramatically accelerating the costly and time-consuming process of drug discovery. By analyzing massive genomic and patient datasets, AI identifies new drug targets, screens potential compounds, and predicts clinical trial outcomes. This vertical also includes precision medicine, where AI predicts optimal treatments based on an individual's unique biological makeup.</p>
+                        <div class="font-semibold">Key Players: Recursion, Truveta, Bayer</div>
+                    </div>
+                    <div id="ops" class="tab-content hidden">
+                        <h4 class="text-2xl font-semibold mb-4 text-[#4FD1C5]">Operational Efficiency & Automation</h4>
+                        <p class="text-gray-600 mb-4">This vertical attracted the most funding in H1 2025, focusing on solving the administrative crisis in healthcare. AI scribes automate clinical documentation, reducing physician burnout with adoption rates up to 90%. Other tools optimize revenue cycle management, billing, and hospital resource utilization, directly addressing the 57% of physicians who see administrative burden as AI's biggest opportunity.</p>
+                        <div class="font-semibold">Key Players: Abridge, Ambience, AKASA, LeanTaaS</div>
+                    </div>
+                    <div id="rpm" class="tab-content hidden">
+                        <h4 class="text-2xl font-semibold mb-4 text-[#4FD1C5]">Remote Patient Monitoring (RPM)</h4>
+                        <p class="text-gray-600 mb-4">Combining AI with wearable technology and at-home devices, RPM offers personalized, predictive health analytics. This is especially crucial for managing chronic diseases like diabetes and hypertension. As global populations age, particularly in the Asia-Pacific region, AI-driven RPM and elderly care solutions represent a massive, long-term growth area.</p>
+                        <div class="font-semibold">Key Players: Biofourmis, Athelas</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="thesis" class="pt-16">
+            <div class="text-center mb-12 fade-in">
+                <h3 class="text-3xl font-bold mb-3">The Investment Thesis: Key Correlations</h3>
+                <p class="max-w-3xl mx-auto text-gray-600">
+                    The data reveals clear patterns. Understanding these positive and negative correlations is crucial for identifying winning investments and avoiding pitfalls in the Healthcare AI market.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 fade-in">
+                    <h4 class="text-xl font-semibold mb-4 text-green-500">Positive Correlations (Growth Drivers)</h4>
+                    <ul class="space-y-3 text-gray-700">
+                        <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">✓</span><span><strong>AI Integration & Funding:</strong> Being AI-enabled directly correlates with attracting 83% more funding per deal.</span></li>
+                        <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">✓</span><span><strong>Pain Point & Adoption:</strong> Solutions targeting major pain points like administrative burden see rapid, high adoption.</span></li>
+                        <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">✓</span><span><strong>ROI & Penetration:</strong> A clear, fast ROI ($3.20 per $1) accelerates market penetration.</span></li>
+                        <li class="flex items-start"><span class="text-green-500 mr-3 mt-1">✓</span><span><strong>Data Growth & Innovation:</strong> More data fuels more powerful and necessary AI solutions.</span></li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 fade-in">
+                    <h4 class="text-xl font-semibold mb-4 text-red-500">Negative Correlations (Headwinds)</h4>
+                    <ul class="space-y-3 text-gray-700">
+                        <li class="flex items-start"><span class="text-red-500 mr-3 mt-1">✗</span><span><strong>Lack of Standards:</strong> Poor interoperability between systems hinders widespread adoption.</span></li>
+                        <li class="flex items-start"><span class="text-red-500 mr-3 mt-1">✗</span><span><strong>Data Privacy Concerns:</strong> Concerns over data security can slow adoption and trust.</span></li>
+                        <li class="flex items-start"><span class="text-red-500 mr-3 mt-1">✗</span><span><strong>Talent Shortage:</strong> A lack of skilled AI professionals can limit growth and implementation.</span></li>
+                        <li class="flex items-start"><span class="text-red-500 mr-3 mt-1">✗</span><span><strong>Non-AI Focus:</strong> Startups without a core AI offering are capturing a shrinking share of VC funds.</span></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-16 bg-gray-800 text-white rounded-xl shadow-lg p-8 md:p-10 fade-in">
+                <h3 class="text-3xl font-bold text-center mb-6">Actionable Investment Recommendations</h3>
+                <ul class="space-y-4 max-w-3xl mx-auto">
+                    <li class="flex items-center"><span class="text-2xl mr-4">1️⃣</span><span>Prioritize companies with AI at their core and a proven, fast ROI.</span></li>
+                    <li class="flex items-center"><span class="text-2xl mr-4">2️⃣</span><span>Favor scalable, cloud-native architectures over on-premise solutions.</span></li>
+                    <li class="flex items-center"><span class="text-2xl mr-4">3️⃣</span><span>Invest in the "picks and shovels": foundational data infrastructure and interoperability platforms.</span></li>
+                    <li class="flex items-center"><span class="text-2xl mr-4">4️⃣</span><span>Look for attractive acquisition targets as the market continues its M&A-driven consolidation.</span></li>
+                    <li class="flex items-center"><span class="text-2xl mr-4">5️⃣</span><span>Assess opportunities in high-growth regions like Asia-Pacific, driven by strong demographic tailwinds.</span></li>
+                </ul>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="text-center py-8 mt-12 border-t border-gray-200">
+        <p class="text-gray-500">Data synthesized from GlobeNewswire, Demand Sage, Rock Health, Fierce Healthcare, and other industry reports.</p>
+        <p class="text-sm text-gray-400 mt-2">Interactive Analysis by Gemini</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const chartFontColor = '#333333';
+            const gridColor = '#e2e8f0';
+
+            // Market Growth Chart
+            const marketGrowthCtx = document.getElementById('marketGrowthChart').getContext('2d');
+            new Chart(marketGrowthCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2024', '2025', '2030', '2034'],
+                    datasets: [{
+                        label: 'Market Value (USD Billions)',
+                        data: [14.92, 21.66, 110.61, 613.81],
+                        borderColor: '#4FD1C5',
+                        backgroundColor: 'rgba(79, 209, 197, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Market Value: $${context.parsed.y.toFixed(2)}B`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { 
+                                color: chartFontColor,
+                                callback: function(value) {
+                                    return '$' + value + 'B';
+                                }
+                            },
+                            grid: { color: gridColor }
+                        },
+                        x: {
+                            ticks: { color: chartFontColor },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            // VC Funding Chart
+            const vcFundingCtx = document.getElementById('vcFundingChart').getContext('2d');
+            new Chart(vcFundingCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['H1 2023', 'H1 2024', 'H1 2025'],
+                    datasets: [{
+                        label: 'Total Funding (USD Billions)',
+                        data: [6.2, 6.0, 6.4],
+                        backgroundColor: ['#a7f3d0', '#93c5fd', '#4FD1C5'],
+                        borderColor: ['#6ee7b7', '#60a5fa', '#2dd4bf'],
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: chartFontColor, callback: value => '$' + value + 'B' },
+                            grid: { color: gridColor }
+                        },
+                        x: { ticks: { color: chartFontColor }, grid: { display: false } }
+                    }
+                }
+            });
+
+            // AI Dominance Chart
+            const aiDominanceCtx = document.getElementById('aiDominanceChart').getContext('2d');
+            const aiDominanceData = {
+                labels: ['AI-Enabled Funding', 'Non-AI Funding'],
+                datasets: [{
+                    data: [62, 38],
+                    backgroundColor: ['#4FD1C5', '#E0E7FF'],
+                    hoverBackgroundColor: ['#2dd4bf', '#C7D2FE'],
+                    borderColor: '#F8F7F4',
+                    borderWidth: 4
+                }]
+            };
+            const aiDominanceChart = new Chart(aiDominanceCtx, {
+                type: 'doughnut',
+                data: aiDominanceData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: chartFontColor } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.parsed}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('aiDominanceChart').onclick = function(evt) {
+                const activePoints = aiDominanceChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+                const aiDominanceText = document.getElementById('aiDominanceText');
+                if (activePoints.length) {
+                    const firstPoint = activePoints[0];
+                    const label = aiDominanceChart.data.labels[firstPoint.index];
+                    const value = aiDominanceChart.data.datasets[firstPoint.datasetIndex].data[firstPoint.index];
+                    if (label === 'AI-Enabled Funding') {
+                         aiDominanceText.innerHTML = `<p class="font-semibold text-[#4FD1C5]">${value}% of H1 2025 funding ($4.0B)</p><p>went to AI-enabled startups, which raised 83% more per deal on average.</p>`;
+                    } else {
+                         aiDominanceText.innerHTML = `<p class="font-semibold text-gray-500">${value}% of H1 2025 funding ($2.4B)</p><p>went to non-AI startups, indicating a shrinking share of the investment pie.</p>`;
+                    }
+                }
+            };
+
+            // Tabs for Key Verticals
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    tabButtons.forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.classList.add('text-gray-600');
+                    });
+                    button.classList.add('active');
+                    button.classList.remove('text-gray-600');
+
+                    const tabId = button.dataset.tab;
+                    tabContents.forEach(content => {
+                        if (content.id === tabId) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            // Smooth scrolling for nav links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+            
+            // Mobile navigation
+            document.getElementById('mobile-nav').addEventListener('change', function(e) {
+                const targetId = e.target.value;
+                document.querySelector(targetId).scrollIntoView({ behavior: 'smooth' });
+            });
+            
+            // Active nav link on scroll
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            window.onscroll = () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 100) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            };
+            
+            // Fade-in elements on scroll
+            const faders = document.querySelectorAll('.fade-in');
+            const appearOptions = {
+                threshold: 0.2,
+                rootMargin: "0px 0px -50px 0px"
+            };
+            const appearOnScroll = new IntersectionObserver(function(entries, appearOnScroll) {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        return;
+                    } else {
+                        entry.target.classList.add('visible');
+                        appearOnScroll.unobserve(entry.target);
+                    }
+                });
+            }, appearOptions);
+
+            faders.forEach(fader => {
+                appearOnScroll.observe(fader);
+            });
+
+        });
+    </script>
+</body>
+</html># This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
